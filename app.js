@@ -10,7 +10,17 @@ const List = React.createClass({
   },
   add(){
     const key = ++this.state.key;
-    this.state.editList.set(key,{value:''});
+    this.state.editList.set(key,'');
+    this.forceUpdate();
+  },
+  save(id,value){
+    this.state.editList.delete(id);
+    this.state.list.set(id,value);
+    this.forceUpdate();
+  },
+  edit(id,value){
+    this.state.list.delete(id);
+    this.state.editList.set(id,value);
     this.forceUpdate();
   },
   removeItem(id){
@@ -25,12 +35,14 @@ const List = React.createClass({
     const listDOM = [];
     const editListDOM=[];
     for(let entity of this.state.list){
-      listDOM.push(<Item onRemove={this.removeItem} 
-      id={entity[0]} key={entity[0]} value={entity[1].value}/>)
+      listDOM.push(<Item onEdit={this.edit}
+      onRemove={this.removeItem} 
+      id={entity[0]} key={entity[0]} value={entity[1]}/>)
     }
     for(let entity of this.state.editList){
-      editListDOM.push(<ItemEditor onRemove={this.removeEditor} 
-      id={entity[0]} key={entity[0]} value={entity[1].value}/>)
+      editListDOM.push(<ItemEditor onSave={this.save}
+      onRemove={this.removeEditor} 
+      id={entity[0]} key={entity[0]} value={entity[1]}/>)
     }
     return(
     <div>
@@ -44,12 +56,20 @@ const List = React.createClass({
   }
 });
 const Item =React.createClass({
+  edit(){
+    this.props.onEdit(this.props.id,this.props.value);
+  },
+  remove(){
+    this.props.onRemove(this.props.id);
+  },
   render(){
     return(
       <div>
          <li className="list-group-item">{this.props.value}
-        <a href="#" className="fr glyphicon glyphicon-remove"></a>
-        <a href="#" className="fr glyphicon glyphicon-edit"></a></li>
+        <a href="#" className="fr glyphicon glyphicon-remove"
+        onClick={this.remove}></a>
+        <a href="#" className="fr glyphicon glyphicon-edit"
+        onClick={this.edit}></a></li>
       </div>
     )
   }
@@ -57,11 +77,14 @@ const Item =React.createClass({
 const ItemEditor=React.createClass({
   getInitialState(){
     return{
-      value:''
+      value:this.props.value
     }
   },
   remove(){
     this.props.onRemove(this.props.id);
+  },
+  save(){
+    this.props.onSave(this.props.id,this.state.value);
   },
   handleChange(e){
     // this.state.value = e.target.value;
@@ -78,7 +101,7 @@ const ItemEditor=React.createClass({
           onChange={this.handleChange} value={this.state.value}/>
           <a href="#" className="glyphicon glyphicon-remove" 
           onClick={this.remove}></a>
-          <a href="#" className="glyphicon glyphicon-ok"></a>
+          <a href="#" className="glyphicon glyphicon-ok" onClick={this.save}></a>
         </li>
     </div>
     )
